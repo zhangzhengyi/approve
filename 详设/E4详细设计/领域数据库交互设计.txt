@@ -24,7 +24,7 @@
                 "dataType": "string",
                 "isRequired": true,
                 "isParticipated": true,
-                "etra": "{'sort':'1'}"
+                "extension": "{'sort':'1'}"
         },
         {
                 "chName": "档位信息",
