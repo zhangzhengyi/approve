@@ -1,0 +1,17 @@
+新建领域:/analysisAdmin/field/create
+新建领域数据表:/managementAdmin/fieldDataTable/create
+修改领域数据表:/managementAdmin/fieldDataTable/update
+
+
+1.UI设置业务数据 
+  a.平台后端首次创建 需要通过领域接口添加新建领域接口 领域数据返回领域id 平台后端保存领域id
+  b.平台后端把业务数据整体填写的数据 摆成 json数组+领域id 通过领域接口调用新建领域数据表 返回表id ,平台后端保存领域表id
+  
+2.UI查询业务数据 
+  a.平台后端通过模板id 查询对应的领域表id 再通过领域表id 查询通过领域接口的查询领域数据 反馈给前端
+  b.前端解析数据
+  
+3.UI编辑数据
+  a.ui尽管针对的是某一数据编辑 但是又有领域数据库接口设计是全量更新 所以前端需要把整个json对发送给平台后端
+  b.平台后端接口 则调用领域接口 跟新数据
+  
