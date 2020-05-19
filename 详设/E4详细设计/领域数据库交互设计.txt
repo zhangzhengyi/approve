@@ -15,3 +15,26 @@
   a.ui尽管针对的是某一数据编辑 但是又有领域数据库接口设计是全量更新 所以前端需要把整个json对发送给平台后端
   b.平台后端接口 则调用领域接口 跟新数据
   
+  
+ 领域表字段:
+ [
+        {
+                "chName": "口味名称",
+                "enName": "name",
+                "dataType": "string",
+                "isRequired": true,
+                "isParticipated": true,
+                "etra": "{'sort':'1'}"
+        },
+        {
+                "chName": "档位信息",
+                "enName": "level",
+                "dataType": "string",
+                "isRequired": 0,
+                "isParticipated": true,
+                "extension": "{'sort':1}"
+        }
+		
+		
+]
+}
