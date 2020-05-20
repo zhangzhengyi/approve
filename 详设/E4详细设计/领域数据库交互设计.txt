@@ -22,16 +22,16 @@
                 "chName": "口味名称",
                 "enName": "name",
                 "dataType": "string",
-                "isRequired": true,
-                "isParticipated": true,
+                "required": true,
+                "participated": true,
                 "extension": "{'sort':'1'}"
         },
         {
                 "chName": "档位信息",
                 "enName": "level",
                 "dataType": "string",
-                "isRequired": 0,
-                "isParticipated": true,
+                "required": 0,
+                "participated": true,
                 "extension": "{'sort':1}"
         }
 		
