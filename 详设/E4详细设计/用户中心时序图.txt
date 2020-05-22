@@ -1,0 +1,28 @@
+
+1.开发者在用户中心创建审批流应用 比如approval
+2.开发者在用户中心创建功能 菜单 角色 等
+
+
+-----以上1-2步在开发者中心执行
+
+3.当开发者在审批流系统创建组织架构节点时,调用用户中心创建账号体系 审批流系统记录改账号体系
+   后续改组织下的用户和账号体系对应 形成类似 织架构节点--->账号体系--->用户
+   
+4.当开发者在审批流系统创建组织架构，同步用户相关信息时 
+   a.当添加用户时 需要将用户信息调用开发中心接口 成功后 返回用户中心id
+   审批流系统只维护用户中心id和审批流系统用户id映射关系 其他信息不冗余记录 
+   b.查询用户信息时 直接通过审批流系统用户id映射的用户中心id 去查询用户中心用户接口
+   c.更新时，审批流系统更新相关用户信息 直接用户中心id 去更新用户中心用户接口
+   
+5.当开发者在用户中心同步用户相关信息时， 
+  a.当添加审批流应用的用户时 审批流系统通过后台定时系统 增量拉取 用户中心新增的用户信息接口(用户中心需要提供时间维度的新增用户信息)
+                             拉取成功后 维护用户中心id和审批流系统用户id映射关系
+  b.查询用户信息时 由于审批流系统不冗余保存 无需关心
+							  
+							  
+用户映射表
+Name	Code	Data Type	Comment	Length	Precision	Mandatory	Primary Identifier	Displayed	Domain
+用户id	id	Variable characters (64)		64		FALSE	FALSE	TRUE	<None>
+用户中心id	user_center_id	Long integer	用户中心的用户id			FALSE	FALSE	TRUE	<None>
+应用id	app_key	Variable characters (128)	应用id	128		FALSE	FALSE	TRUE	<None>
+账号体系	hierarchy_key	Variable characters (128)	账号管理体系用户管理体系key	128		FALSE	FALSE	TRUE	<None>
