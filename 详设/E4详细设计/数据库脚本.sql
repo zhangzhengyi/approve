@@ -12,6 +12,8 @@ drop table if exists t_business_domain_map;
 
 drop table if exists t_business_table_map;
 
+drop table if exists t_counter;
+
 drop table if exists t_department;
 
 drop table if exists t_model;
@@ -60,14 +62,16 @@ drop table if exists t_type_code;
 
 drop table if exists t_user_role;
 
-drop table if exists t_userinfo;
+drop table if exists t_userinfo_map;
+
+ 
 
 /*==============================================================*/
 /* Table: t_approval_flow                                       */
 /*==============================================================*/
 create table t_approval_flow
 (
-   id                   varchar(64) not null comment '申请id',
+   id                   varchar(64) not null,
    model_id             bigint comment '流程模板id',
    apply_id             varchar(64) comment '申请人 用户表用户id',
    approval_status      smallint comment '整个审批中的流转状态 0-初始状态 1-审批中 2-已通过 3-拒绝',
@@ -88,7 +92,7 @@ alter table t_approval_flow comment '审批流申请具体一个个流程实例'
 /*==============================================================*/
 create table t_approval_flow_info
 (
-   id                   varchar(32) not null,
+   id                   varchar(64) not null,
    approval_flow_id     varchar(64) comment 't_approval_flow 审批流申请实例主键',
    business_data_id     varchar(64) comment 't_business_data业务数据主键',
    data_name            varchar(512) comment '冗余t_business_data的data_name字段',
@@ -108,7 +112,7 @@ alter table t_approval_flow_info comment '审批流申请基本信息 该审批�
 /*==============================================================*/
 create table t_approval_log
 (
-   id                   varchar(64) not null comment '申请id',
+   id                   varchar(64) not null,
    approval_flow_id     varchar(64) comment 't_approval_flow主键',
    approve_id           varchar(64) comment '审批人关联用户主键id',
    record_status        smallint comment '0-未审批 1审批中: 2:通过 3:拒绝',
@@ -129,7 +133,7 @@ alter table t_approval_log comment '审批记录';
 /*==============================================================*/
 create table t_basic_config
 (
-   id                   varchar(64) not null comment '申请id',
+   id                   varchar(64) not null,
    model_id             varchar(64) comment '流程模板id',
    operation_type       varchar(10) comment 'initiate-申请可发起人view-申请可查看人员',
    target_type          varchar(10) comment 'departments-部门roles-角色 users-用户
@@ -151,17 +155,18 @@ alter table t_basic_config comment '基础设置 针对每个流程模板都可�
 create table t_business_data_map
 (
    id                   varchar(64) not null comment '平台业务数据表id',
-   field_id             bigint comment '领域数据库id',
-   filedtable_row_id    bigint comment '领域数据行id',
+   table_id             bigint comment '领域数据库id',
+   content_row_id       bigint comment '领域数据行id',
    model_id             varchar(64) comment '流程模板主键id',
    create_id            varchar(64),
    update_id            varchar(64),
    create_time          bigint,
    update_time          bigint,
+   审批流实列id              char(10),
    primary key (id)
 );
 
-alter table t_business_data_map comment '业务数据领域表映射表';
+alter table t_business_data_map comment '业务数据领域表内容映射表';
 
 /*==============================================================*/
 /* Table: t_business_domain_map                                 */
@@ -179,12 +184,28 @@ alter table t_business_domain_map comment '领域数据映射表';
 /*==============================================================*/
 create table t_business_table_map
 (
-   id                   bigint not null,
+   id                   varchar(64),
+   table_id             bigint not null comment '对应的领域表id',
    model_id             varchar(64) comment '流程模板主键id',
-   primary key (id)
+   创建时间                 char(10) comment '流程模板可以有多个领域表 提交取最新的',
+   primary key (table_id)
 );
 
-alter table t_business_table_map comment '领域数据库映射表';
+alter table t_business_table_map comment '领域数据表映射表';
+
+/*==============================================================*/
+/* Table: t_counter                                             */
+/*==============================================================*/
+create table t_counter
+(
+   counter_id           varchar(64) not null comment '数据标识 通过改数值来递增 比如审批流为SPL',
+   counter_name         varchar(128),
+   cur_val              bigint,
+   max_val              bigint,
+   primary key (counter_id)
+);
+
+alter table t_counter comment '计数器 部分表的主键通过改表递增生成';
 
 /*==============================================================*/
 /* Table: t_department                                          */
@@ -221,6 +242,7 @@ create table t_model
    create_time          bigint,
    update_time          bigint,
    bin_id               varchar(64) comment '用户语言返回的id',
+   organization_id      varchar(64),
    primary key (id)
 );
 
@@ -282,8 +304,7 @@ create table t_node_basic
    id                   varchar(32) not null,
    node_type            varchar(20) comment '枚举值:0-开始节点 1-结束节点 2-人工节点 3-条件分支节点4- 条件聚合节点 5-抄送节点 6- 普通线 7-分支线 ',
    node_name            varchar(256) comment '如部门经理审批 名字可以不唯一',
-   model_id             varchar(64) comment 't_model审批流模板id
-            t_model申请流模板id',
+   model_id             varchar(64) comment 't_model审批流模板id',
    node_remark          varchar(128) comment '节点标识符唯一 比如:departmentmanager ',
    primary key (id)
 );
@@ -339,7 +360,7 @@ alter table t_node_complete_rules comment '完成规则 主要该流程的完成
 /*==============================================================*/
 create table t_node_config
 (
-   id                   varchar(64) not null comment '申请id',
+   id                   varchar(64) not null,
    node_name            varchar(64) comment 't_node_basic的节点名称字段 冗余(处理人工节点和申请人)',
    model_id             varchar(64) comment '审批流模板id',
    node_basic_id        varchar(64) comment 't_node_basic主键id 如果类型是2申请人 就是用户id',
@@ -391,7 +412,7 @@ alter table t_node_gather_rules comment '分支聚合节点聚合规则';
 create table t_node_notice
 (
    id                   varchar(64) not null,
-   node_config_id    varchar(64) comment 't_node_config 主键 人工节点id',
+   node_config_id       varchar(64) comment 't_node_config 主键 人工节点id',
    notice_template_id   varchar(64) comment 't_notice_template 主键',
    notice_way           smallint comment '1-短信 2-邮件 冗余消息模板通知方式字段',
    create_id            varchar(64),
@@ -428,8 +449,7 @@ create table t_node_rule
 (
    id                   varchar(32) not null,
    role_type            smallint comment '1-审批人规则 2-完成人规则 3- 自动执行规则 4-分支规则 5-聚合规则  6-抄送人规则 7-线执行规则',
-   model_id             varchar(64) comment 't_model审批流模板id
-            t_model申请流模板id',
+   model_id             varchar(64) comment 't_model审批流模板id',
    node_basic_id        varchar(64) comment 't_node_basic主键id',
    primary key (id)
 );
@@ -459,8 +479,7 @@ create table t_node_vector
    id                   varchar(32) not null,
    origin_id            varchar(64) comment '流程节点的主键 普通线或分支线开始节点',
    target_id            varchar(64) comment '流程节点的主键 普通线或分支线结尾节点',
-   model_id             varchar(64) comment 't_model审批流模板id
-            t_model申请流模板id',
+   model_id             varchar(64) comment 't_model审批流模板id',
    node_basic_id        varchar(64) comment 't_node_basic主键id 普通线 分支线',
    vector_type          smallint comment '1-普通 2-分支',
    primary key (id)
@@ -473,7 +492,7 @@ alter table t_node_vector comment '流程线(方向表)';
 /*==============================================================*/
 create table t_notice_template
 (
-   id                   varchar(64) not null comment '申请id',
+   id                   varchar(64) not null,
    notice_name          varchar(64) comment '如短信通知',
    organization_id      varchar(64),
    notice_way           smallint comment '1-短信 2-邮件',
@@ -512,7 +531,7 @@ alter table t_organization comment '审批流组织表';
 /*==============================================================*/
 create table t_position
 (
-   id                   varchar(64) not null comment '申请id',
+   id                   varchar(64) not null,
    position_name        varchar(64),
    department_id        varchar(64),
    position_status      smallint,
@@ -550,7 +569,7 @@ alter table t_role comment '审批流角色表';
 /*==============================================================*/
 create table t_type_class
 (
-   id                   varchar(64) not null comment '申请id',
+   id                   varchar(64) not null,
    type_class           varchar(64),
    remark               varchar(128),
    create_id            varchar(64),
@@ -559,14 +578,14 @@ create table t_type_class
    update_time          bigint
 );
 
-alter table t_type_class comment '系统字典分类表';
+alter table t_type_class comment '系统字典分类表 大的分类';
 
 /*==============================================================*/
 /* Table: t_type_code                                           */
 /*==============================================================*/
 create table t_type_code
 (
-   id                   varchar(64) not null comment '申请id',
+   id                   varchar(64) not null,
    type_class           varchar(64),
    type_name            varchar(128),
    type_code            varchar(32),
@@ -577,7 +596,7 @@ create table t_type_code
    update_time          bigint
 );
 
-alter table t_type_code comment '系统字典表';
+alter table t_type_code comment '系统字典表 具体的字典';
 
 /*==============================================================*/
 /* Table: t_user_role                                           */
@@ -597,25 +616,24 @@ create table t_user_role
 alter table t_user_role comment '用户角色表';
 
 /*==============================================================*/
-/* Table: t_userinfo                                            */
+/* Table: t_userinfo_map                                        */
 /*==============================================================*/
-create table t_userinfo
+create table t_userinfo_map
 (
    id                   varchar(64) not null,
+   user_name          varchar(256),
    user_number          varchar(64),
-   user_name            varchar(128),
-   department_id        varchar(64),
-   position_id          varchar(64),
-   parent_id            varchar(64),
-   user_status          smallint,
-   email                varchar(256),
-   mobile               varchar(20),
-   sex                  varchar(2),
    create_id            varchar(64),
    update_id            varchar(64),
    crreate_time         bigint,
    update_time          bigint,
+   user_center_id       bigint comment '用户中心的用户id',
+   app_key              varchar(128) comment '应用id',
+   hierarchy_key        varchar(128) comment '账号管理体系用户管理体系key',
+   third_user_id        varchar(64) comment '第三方用户id',
    primary key (id)
 );
 
-alter table t_userinfo comment '审批流用户表';
+alter table t_userinfo_map comment '审批流用户表用户信息表映射表';
+
+ 
