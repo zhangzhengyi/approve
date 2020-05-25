@@ -136,9 +136,9 @@ create table t_basic_config
    id                   varchar(64) not null,
    model_id             varchar(64) comment '流程模板id',
    operation_type       varchar(10) comment 'initiate-申请可发起人view-申请可查看人员',
-   target_type          varchar(10) comment 'departments-部门roles-角色 users-用户
+   target_type          varchar(10) comment 'departments-部门roles-角色 users-用户 ',
             
-            ',
+           
    target_id            varchar(64) comment '对应部门id  角色id 用户id',
    create_id            varchar(64),
    update_id            varchar(64),
@@ -162,7 +162,7 @@ create table t_business_data_map
    update_id            varchar(64),
    create_time          bigint,
    update_time          bigint,
-   审批流实列id              char(10),
+   approval_flow_id      varchar(64),
    primary key (id)
 );
 
@@ -173,8 +173,9 @@ alter table t_business_data_map comment '业务数据领域表内容映射表';
 /*==============================================================*/
 create table t_business_domain_map
 (
+   id                   varchar(64) not null,
    field_id             bigint not null,
-   primary key (field_id)
+   primary key (id)
 );
 
 alter table t_business_domain_map comment '领域数据映射表';
@@ -184,11 +185,11 @@ alter table t_business_domain_map comment '领域数据映射表';
 /*==============================================================*/
 create table t_business_table_map
 (
-   id                   varchar(64),
+   id                   varchar(64) not null,
    table_id             bigint not null comment '对应的领域表id',
    model_id             varchar(64) comment '流程模板主键id',
-   创建时间                 char(10) comment '流程模板可以有多个领域表 提交取最新的',
-   primary key (table_id)
+   create_time           bigint comment '流程模板可以有多个领域表 提交取最新的',
+   primary key (id)
 );
 
 alter table t_business_table_map comment '领域数据表映射表';
@@ -198,11 +199,12 @@ alter table t_business_table_map comment '领域数据表映射表';
 /*==============================================================*/
 create table t_counter
 (
+   id                   varchar(64) not null,
    counter_id           varchar(64) not null comment '数据标识 通过改数值来递增 比如审批流为SPL',
    counter_name         varchar(128),
    cur_val              bigint,
    max_val              bigint,
-   primary key (counter_id)
+   primary key (id)
 );
 
 alter table t_counter comment '计数器 部分表的主键通过改表递增生成';
@@ -274,8 +276,8 @@ alter table t_model_compile_log comment '审批流模板编译日志
 create table t_model_layout
 (
    id                   varchar(64) not null,
-   流程模板id               varchar(64) comment '流程模板id',
-   布局内容json             varchar(4000) comment '布局具体细节json内容',
+   model_id               varchar(64) comment '流程模板id',
+   model_json             varchar(4000) comment '布局具体细节json内容',
    primary key (id)
 );
 
@@ -514,6 +516,7 @@ create table t_organization
 (
    id                   varchar(32) not null,
    organization_id      varchar(32),
+   hierarchy_key        varchar(128),
    name                 varchar(64),
    developer_id         varchar(32),
    organization_status  smallint,
@@ -575,7 +578,8 @@ create table t_type_class
    create_id            varchar(64),
    update_id            varchar(64),
    create_time          bigint,
-   update_time          bigint
+   update_time          bigint,
+   primary key (id)
 );
 
 alter table t_type_class comment '系统字典分类表 大的分类';
@@ -593,7 +597,8 @@ create table t_type_code
    create_id            varchar(64),
    update_id            varchar(64),
    create_time          bigint,
-   update_time          bigint
+   update_time          bigint,
+   primary key (id)
 );
 
 alter table t_type_code comment '系统字典表 具体的字典';
